@@ -1,0 +1,28 @@
+.wrapper {
+  width: 250px;
+}
+
+.searchInput {
+  width: 100%;
+  margin-bottom: 8px;
+  padding: 6px;
+}
+
+.option {
+  user-select: none;
+  padding: 8px;
+  border-radius: 4px;
+  background: #fff;
+  margin-bottom: 4px;
+  border: 1px solid #eee;
+  cursor: grab;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.flag {
+  width: 20px;
+  height: 16px;
+  object-fit: cover;
+}
