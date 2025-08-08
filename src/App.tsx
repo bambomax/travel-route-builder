@@ -1,4 +1,4 @@
-import { useRef, useState, useCallback, type DragEvent } from 'react';
+import { useRef, useEffect, useState, useCallback, type DragEvent } from 'react';
 import {
   applyNodeChanges,
   applyEdgeChanges,
@@ -17,7 +17,7 @@ import '@xyflow/react/dist/style.css';
 
 import CountryNode from './Components/Nodes/CountryNode';
 import Search from './Components/Search/Search';
-import { DRAG_TYPE_COUNTRY, NODE_TYPE_COUNTRY } from './constants.ts';
+import { DRAG_TYPE_COUNTRY, NODE_TYPE_COUNTRY, RESTORE_FLOW_KEY } from './constants.ts';
 import { createCountryNode } from './utils.ts';
 import type { Country } from './types.ts';
 
@@ -33,7 +33,8 @@ export default function App() {
   const [nodes, setNodes] = useState<Node<Country>[]>([]);
   const [edges, setEdges] = useState<Edge[]>([]);
   const reactFlowWrapper = useRef(null);
-  const { screenToFlowPosition } = useReactFlow();
+  const [rfInstance, setRfInstance] = useState<ReactFlow | null>(null);
+  const { screenToFlowPosition, setViewport } = useReactFlow();
 
   const onNodesChange = useCallback(
     (changes: NodeChange<Node<Country>>[]) => setNodes((nodesSnapshot) => applyNodeChanges(changes, nodesSnapshot)),
@@ -71,9 +72,38 @@ export default function App() {
     [screenToFlowPosition]
   );
 
+  const onSave = useCallback(() => {
+    if (rfInstance) {
+      const flow = rfInstance.toObject();
+      localStorage.setItem(RESTORE_FLOW_KEY, JSON.stringify(flow));
+    }
+  }, [rfInstance]);
+
+  useEffect(() => {
+    const restoreFlow = async () => {
+      const flow = JSON.parse(localStorage.getItem(RESTORE_FLOW_KEY));
+
+      if (flow) {
+        const { x = 0, y = 0, zoom = 1 } = flow.viewport;
+        setNodes(flow.nodes || []);
+        setEdges(flow.edges || []);
+        setViewport({ x, y, zoom });
+      }
+    };
+
+    restoreFlow();
+
+    window.addEventListener('beforeunload', onSave);
+
+    return () => {
+      window.removeEventListener('beforeunload', onSave);
+    };
+  }, [setViewport, onSave]);
+
   return (
     <div style={{ width: '100vw', height: '100vh' }} ref={reactFlowWrapper}>
       <ReactFlow<Node<Country>, Edge>
+        onInit={setRfInstance}
         nodes={nodes}
         edges={edges}
         nodeTypes={nodeTypes}
