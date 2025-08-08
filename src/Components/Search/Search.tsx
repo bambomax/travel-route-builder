@@ -75,7 +75,7 @@ const Search: React.FC = () => {
                 className={styles.flag}
               />
             )}
-            <span>{country.name.common}</span>
+            <span className={styles.countryName}>{country.name.common}</span>
           </div>
         ))}
       </div>

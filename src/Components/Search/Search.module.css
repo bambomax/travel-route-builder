@@ -26,3 +26,13 @@
   height: 16px;
   object-fit: cover;
 }
+
+.countryName {
+  font-size: 1.10rem;
+  font-weight: 600;
+  color: #1e2636;
+  text-align: center;
+  line-height: 1.2;
+  letter-spacing: 0.02em;
+  word-break: break-word;
+}
