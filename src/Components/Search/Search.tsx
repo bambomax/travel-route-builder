@@ -1,14 +1,16 @@
 import React, { useCallback, useEffect, useState } from 'react';
 
-import type { Country } from '../../types';
-import { DRAG_TYPE_COUNTRY } from '../../constants.ts';
+import type { Country, NodeData, NodeType } from '../../types';
+import { NODE_TYPE_COUNTRY } from '../../constants';
 import styles from './Search.module.css';
-import { getCountriesEndpoint } from '../../endpoints.ts';
+import { getCountriesEndpoint } from '../../endpoints';
+import { useDnDContext } from '../../hooks/useDnDContext.tsx'
 
 const Search: React.FC = () => {
   const [query, setQuery] = useState('');
   const [countries, setCountries] = useState<Country[]>([]);
   const [filtered, setFiltered] = useState<Country[]>([]);
+  const { setNodeType } = useDnDContext();
 
   const fetchCountries = async (): Promise<Country[]> => {
     const endpoint = getCountriesEndpoint(['name', 'flags']);
@@ -39,11 +41,13 @@ const Search: React.FC = () => {
 
   const handleDragStart = useCallback((
     e: React.DragEvent<HTMLDivElement>,
-    country: Country
+    nodeType: NodeType,
+    data: NodeData,
   ) => {
-    e.dataTransfer.setData(DRAG_TYPE_COUNTRY, JSON.stringify(country));
+    setNodeType(nodeType);
+    e.dataTransfer.setData(nodeType, JSON.stringify(data));
     e.dataTransfer.effectAllowed = 'copy';
-  }, []);
+  }, [setNodeType]);
 
   const clearSearch = useCallback(() => {
     setQuery('');
@@ -60,11 +64,11 @@ const Search: React.FC = () => {
         className={styles.searchInput}
       />
       <div>
-        {filtered.slice(0, 10).map((country) => (
+        {filtered.slice(0, 10).map((country, idx) => (
           <div
-            key={country.name.common}
+            key={`${country.name.common}__${idx}`}
             draggable
-            onDragStart={(e) => handleDragStart(e, country)}
+            onDragStart={(e) => handleDragStart(e, NODE_TYPE_COUNTRY, country)}
             onDragEnd={clearSearch}
             className={styles.option}
           >

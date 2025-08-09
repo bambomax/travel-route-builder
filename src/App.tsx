@@ -18,9 +18,10 @@ import '@xyflow/react/dist/style.css';
 
 import CountryNode from './Components/Nodes/CountryNode';
 import Search from './Components/Search/Search';
-import { DRAG_TYPE_COUNTRY, NODE_TYPE_COUNTRY, RESTORE_FLOW_KEY } from './constants.ts';
-import { createCountryNode, isRouteBlocked } from './utils.ts';
-import type { Country, RouteBlockKey } from './types.ts';
+import { NODE_TYPE_COUNTRY, RESTORE_FLOW_KEY } from './constants';
+import { createNode, isRouteBlocked } from './utils';
+import type { Country, RouteBlockKey } from './types';
+import { useDnDContext } from './hooks/useDnDContext';
 
 const rfStyle = {
   backgroundColor: '#EFF1FF',
@@ -36,6 +37,7 @@ export default function App() {
   const reactFlowWrapper = useRef(null);
   const [rfInstance, setRfInstance] = useState<ReactFlowInstance<Node<Country>, Edge> | null>(null);
   const { screenToFlowPosition, setViewport } = useReactFlow();
+  const { nodeType, setNodeType } = useDnDContext();
 
   const onNodesChange = useCallback(
     (changes: NodeChange<Node<Country>>[]) => setNodes((nodesSnapshot) => applyNodeChanges(changes, nodesSnapshot)),
@@ -67,27 +69,6 @@ export default function App() {
       setEdges((edgesSnapshot) => addEdge(params, edgesSnapshot))
     },
     [nodes],
-  );
-
-  const onDrop = useCallback(
-    (event: DragEvent) => {
-      event.preventDefault();
-
-      const data = event.dataTransfer.getData(DRAG_TYPE_COUNTRY);
-      if (!data) return;
-
-      const country: Country = JSON.parse(data);
-
-      const position = screenToFlowPosition({
-        x: event.clientX,
-        y: event.clientY,
-      });
-
-      const countryNode = createCountryNode(country, position);
-
-      setNodes((nodes) => [...nodes, countryNode]);
-    },
-    [screenToFlowPosition]
   );
 
   const onSave = useCallback(() => {
@@ -122,6 +103,30 @@ export default function App() {
     };
   }, [setViewport, onSave]);
 
+  const onDrop = useCallback(
+    (event: DragEvent) => {
+      event.preventDefault();
+      if (!nodeType) return;
+
+      setNodeType(null);
+
+      const data = event.dataTransfer.getData(nodeType);
+      if (!data) return;
+
+      const country: Country = JSON.parse(data);
+
+      const position = screenToFlowPosition({
+        x: event.clientX,
+        y: event.clientY,
+      });
+
+      const countryNode = createNode<Country>(NODE_TYPE_COUNTRY, position, country);
+
+      setNodes((nodes) => [...nodes, countryNode]);
+    },
+    [nodeType, setNodeType, screenToFlowPosition]
+  );
+
   return (
     <div style={{ width: '100vw', height: '100vh' }} ref={reactFlowWrapper}>
       <ReactFlow<Node<Country>, Edge>
@@ -132,8 +137,12 @@ export default function App() {
         onNodesChange={onNodesChange}
         onEdgesChange={onEdgesChange}
         onConnect={onConnect}
+
         onDrop={onDrop}
+        // onDragStart={onDragStart}
+        // onDragOver={onDragOver}
         onDragOver={(event) => event.preventDefault()}
+
         fitView
         style={rfStyle}
       >
