@@ -19,9 +19,10 @@ import '@xyflow/react/dist/style.css';
 import CountryNode from './Components/Nodes/CountryNode';
 import Search from './Components/Search/Search';
 import { NODE_TYPE_COUNTRY, RESTORE_FLOW_KEY } from './constants';
-import { createNode, isRouteBlocked } from './utils';
+import { isRouteBlocked } from './utils';
 import type { Country, NodeData, RouteBlockKey } from './types';
 import { useDnDContext } from './hooks/useDnDContext';
+import { NodeClass } from './NodeClass'
 
 const rfStyle = {
   backgroundColor: '#EFF1FF',
@@ -129,7 +130,16 @@ export default function App() {
         y: event.clientY,
       });
 
-      const createdNode = createNode(nodeType, position, parsedData);
+      // functional approach:
+      // const createdNode = createNode(nodeType, position, parsedData);
+
+      // or using a class:
+      const createdNode = new NodeClass({
+        id: Date.now().toString(),
+        type: nodeType,
+        position,
+        data: parsedData,
+      });
 
       setNodes((nodes) => [...nodes, createdNode]);
     },

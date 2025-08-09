@@ -1,7 +1,9 @@
 import routeBlockRules from './routeBlockRules.json';
 import type { Dispatch, SetStateAction } from 'react';
 
-export type NodeType = 'country' | 'hotel' | 'airport';
+import { NODE_TYPE_COUNTRY } from './constants.ts';
+
+export type NodeType = typeof NODE_TYPE_COUNTRY;
 export type NodeData = Country | { label: string };
 
 export type DnDContextType = {
