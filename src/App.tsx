@@ -20,7 +20,7 @@ import CountryNode from './Components/Nodes/CountryNode';
 import Search from './Components/Search/Search';
 import { NODE_TYPE_COUNTRY, RESTORE_FLOW_KEY } from './constants';
 import { createNode, isRouteBlocked } from './utils';
-import type { Country, RouteBlockKey } from './types';
+import type { Country, NodeData, RouteBlockKey } from './types';
 import { useDnDContext } from './hooks/useDnDContext';
 
 const rfStyle = {
@@ -32,15 +32,15 @@ const nodeTypes = {
 };
 
 export default function App() {
-  const [nodes, setNodes] = useState<Node<Country>[]>([]);
+  const [nodes, setNodes] = useState<Node<NodeData>[]>([]);
   const [edges, setEdges] = useState<Edge[]>([]);
   const reactFlowWrapper = useRef(null);
-  const [rfInstance, setRfInstance] = useState<ReactFlowInstance<Node<Country>, Edge> | null>(null);
+  const [rfInstance, setRfInstance] = useState<ReactFlowInstance<Node<NodeData>, Edge> | null>(null);
   const { screenToFlowPosition, setViewport } = useReactFlow();
   const { nodeType, setNodeType } = useDnDContext();
 
   const onNodesChange = useCallback(
-    (changes: NodeChange<Node<Country>>[]) => setNodes((nodesSnapshot) => applyNodeChanges(changes, nodesSnapshot)),
+    (changes: NodeChange<Node<NodeData>>[]) => setNodes((nodesSnapshot) => applyNodeChanges(changes, nodesSnapshot)),
     [],
   );
 
@@ -53,11 +53,20 @@ export default function App() {
     (params: Connection) => {
       const sourceNode = nodes.find(node => node.id === params.source);
       const targetNode = nodes.find(node => node.id === params.target);
-      const sourceLabel = sourceNode?.data?.name.common;
-      const targetLabel = targetNode?.data?.name.common;
+
+      let sourceLabel = 'Unsupported Node';
+      let targetLabel = 'Unsupported Node';
+
+      if (sourceNode?.type === NODE_TYPE_COUNTRY) {
+        sourceLabel = (sourceNode.data as Country)?.name.common;
+      }
+
+      if (targetNode?.type === NODE_TYPE_COUNTRY) {
+        targetLabel = (targetNode.data as Country)?.name.common;
+      }
 
       if (sourceLabel && targetLabel && sourceLabel === targetLabel) {
-        alert('Cannot connect a country to itself.');
+        alert('Cannot connect a node to itself.');
         return;
       }
 
@@ -113,23 +122,23 @@ export default function App() {
       const data = event.dataTransfer.getData(nodeType);
       if (!data) return;
 
-      const country: Country = JSON.parse(data);
+      const parsedData: NodeData = JSON.parse(data);
 
       const position = screenToFlowPosition({
         x: event.clientX,
         y: event.clientY,
       });
 
-      const countryNode = createNode<Country>(NODE_TYPE_COUNTRY, position, country);
+      const createdNode = createNode(nodeType, position, parsedData);
 
-      setNodes((nodes) => [...nodes, countryNode]);
+      setNodes((nodes) => [...nodes, createdNode]);
     },
     [nodeType, setNodeType, screenToFlowPosition]
   );
 
   return (
     <div style={{ width: '100vw', height: '100vh' }} ref={reactFlowWrapper}>
-      <ReactFlow<Node<Country>, Edge>
+      <ReactFlow<Node<NodeData>, Edge>
         onInit={setRfInstance}
         nodes={nodes}
         edges={edges}

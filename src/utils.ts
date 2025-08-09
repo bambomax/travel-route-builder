@@ -1,13 +1,13 @@
 import type { Node, XYPosition } from '@xyflow/react';
 
-import type { NodeType, RouteBlockKey } from './types.ts';
+import type { NodeType, NodeData, RouteBlockKey } from './types.ts';
 import routeBlockRules from './routeBlockRules.json';
 
-export function createNode<T extends Record<string, unknown>>(
+export function createNode(
   type: NodeType,
   position: XYPosition,
-  data: T
-): Node<T> {
+  data: NodeData,
+): Node<NodeData> {
   return {
     id: Date.now().toString(),
     type,
