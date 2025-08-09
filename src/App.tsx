@@ -20,7 +20,7 @@ import CountryNode from './Components/Nodes/CountryNode';
 import Search from './Components/Search/Search';
 import { NODE_TYPE_COUNTRY, RESTORE_FLOW_KEY } from './constants';
 import { isRouteBlocked } from './utils';
-import type { Country, NodeData, RouteBlockKey } from './types';
+import type { NodeData } from './types';
 import { useDnDContext } from './hooks/useDnDContext';
 import { NodeClass } from './NodeClass'
 
@@ -52,29 +52,7 @@ export default function App() {
 
   const onConnect = useCallback(
     (params: Connection) => {
-      const sourceNode = nodes.find(node => node.id === params.source);
-      const targetNode = nodes.find(node => node.id === params.target);
-
-      let sourceLabel = 'Unsupported Node';
-      let targetLabel = 'Unsupported Node';
-
-      if (sourceNode?.type === NODE_TYPE_COUNTRY) {
-        sourceLabel = (sourceNode.data as Country)?.name.common;
-      }
-
-      if (targetNode?.type === NODE_TYPE_COUNTRY) {
-        targetLabel = (targetNode.data as Country)?.name.common;
-      }
-
-      if (sourceLabel && targetLabel && sourceLabel === targetLabel) {
-        alert('Cannot connect a node to itself.');
-        return;
-      }
-
-      if (sourceLabel && targetLabel && isRouteBlocked(sourceLabel as RouteBlockKey, targetLabel)) {
-        alert(`Route blocked: ${sourceLabel} -> ${targetLabel}`);
-        return;
-      }
+      if (isRouteBlocked(nodes, params)) return;
 
       setEdges((edgesSnapshot) => addEdge(params, edgesSnapshot))
     },
