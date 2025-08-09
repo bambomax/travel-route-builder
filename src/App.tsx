@@ -96,8 +96,6 @@ export default function App() {
       event.preventDefault();
       if (!nodeType) return;
 
-      setNodeType(null);
-
       const data = event.dataTransfer.getData(nodeType);
       if (!data) return;
 
@@ -120,6 +118,7 @@ export default function App() {
       });
 
       setNodes((nodes) => [...nodes, createdNode]);
+      setNodeType(null);
     },
     [nodeType, setNodeType, screenToFlowPosition]
   );
