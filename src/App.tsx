@@ -137,12 +137,8 @@ export default function App() {
         onNodesChange={onNodesChange}
         onEdgesChange={onEdgesChange}
         onConnect={onConnect}
-
         onDrop={onDrop}
-        // onDragStart={onDragStart}
-        // onDragOver={onDragOver}
         onDragOver={(event) => event.preventDefault()}
-
         fitView
         style={rfStyle}
       >

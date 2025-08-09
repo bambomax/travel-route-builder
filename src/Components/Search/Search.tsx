@@ -4,7 +4,7 @@ import type { Country, NodeData, NodeType } from '../../types';
 import { NODE_TYPE_COUNTRY } from '../../constants';
 import styles from './Search.module.css';
 import { getCountriesEndpoint } from '../../endpoints';
-import { useDnDContext } from '../../hooks/useDnDContext.tsx'
+import { useDnDContext } from '../../hooks/useDnDContext'
 
 const Search: React.FC = () => {
   const [query, setQuery] = useState('');
