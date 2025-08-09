@@ -1,3 +1,5 @@
+import routeBlockRules from './routeBlockRules.json';
+
 export type Country = {
   flags: {
     png: string;
@@ -10,3 +12,5 @@ export type Country = {
     nativeName: Record<string, { official: string; common: string }>;
   };
 };
+
+export type RouteBlockKey = keyof typeof routeBlockRules;

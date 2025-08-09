@@ -12,14 +12,15 @@ import {
   type EdgeChange,
   type Node,
   type NodeChange,
+  type ReactFlowInstance,
 } from '@xyflow/react';
 import '@xyflow/react/dist/style.css';
 
 import CountryNode from './Components/Nodes/CountryNode';
 import Search from './Components/Search/Search';
 import { DRAG_TYPE_COUNTRY, NODE_TYPE_COUNTRY, RESTORE_FLOW_KEY } from './constants.ts';
-import { createCountryNode } from './utils.ts';
-import type { Country } from './types.ts';
+import { createCountryNode, isRouteBlocked } from './utils.ts';
+import type { Country, RouteBlockKey } from './types.ts';
 
 const rfStyle = {
   backgroundColor: '#EFF1FF',
@@ -33,7 +34,7 @@ export default function App() {
   const [nodes, setNodes] = useState<Node<Country>[]>([]);
   const [edges, setEdges] = useState<Edge[]>([]);
   const reactFlowWrapper = useRef(null);
-  const [rfInstance, setRfInstance] = useState<ReactFlow | null>(null);
+  const [rfInstance, setRfInstance] = useState<ReactFlowInstance<Node<Country>, Edge> | null>(null);
   const { screenToFlowPosition, setViewport } = useReactFlow();
 
   const onNodesChange = useCallback(
@@ -47,8 +48,25 @@ export default function App() {
   );
 
   const onConnect = useCallback(
-    (params: Connection) => setEdges((edgesSnapshot) => addEdge(params, edgesSnapshot)),
-    [],
+    (params: Connection) => {
+      const sourceNode = nodes.find(node => node.id === params.source);
+      const targetNode = nodes.find(node => node.id === params.target);
+      const sourceLabel = sourceNode?.data?.name.common;
+      const targetLabel = targetNode?.data?.name.common;
+
+      if (sourceLabel && targetLabel && sourceLabel === targetLabel) {
+        alert('Cannot connect a country to itself.');
+        return;
+      }
+
+      if (sourceLabel && targetLabel && isRouteBlocked(sourceLabel as RouteBlockKey, targetLabel)) {
+        alert(`Route blocked: ${sourceLabel} -> ${targetLabel}`);
+        return;
+      }
+
+      setEdges((edgesSnapshot) => addEdge(params, edgesSnapshot))
+    },
+    [nodes],
   );
 
   const onDrop = useCallback(
@@ -81,7 +99,11 @@ export default function App() {
 
   useEffect(() => {
     const restoreFlow = async () => {
-      const flow = JSON.parse(localStorage.getItem(RESTORE_FLOW_KEY));
+      const storage = localStorage.getItem(RESTORE_FLOW_KEY);
+
+      if (!storage) return;
+
+      const flow = JSON.parse(storage);
 
       if (flow) {
         const { x = 0, y = 0, zoom = 1 } = flow.viewport;

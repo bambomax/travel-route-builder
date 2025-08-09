@@ -1,0 +1,11 @@
+{
+  "Spain": {
+    "block": ["Greece", "Portugal", "Italy"]
+  },
+  "Greece": {
+    "block": ["Spain", "Portugal"]
+  },
+  "Poland": {
+    "block": ["Germany", "Czech Republic", "Slovakia"]
+  }
+}
